@@ -15,9 +15,13 @@ app.use(express.json());
 // routes
 const cors = require("cors");
 const userRouter = require("./routes/user");
+const foodTableRouter = require("./routes/foodTable");
+const calorieCalculatorRouter = require("./routes/calorieCalculator");
 
 app.use(cors());
 
 app.use("/users", userRouter);
+app.use("/foodtable", foodTableRouter);
+app.use("/caloriecalculator", calorieCalculatorRouter);
 
 app.listen(4000, () => console.log("Server Started"));
