@@ -17,7 +17,11 @@ const calorieCalculatorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  Servings: {
+  ServingsAmount: {
+    type: String,
+    required: true,
+  },
+  ServingsUnit: {
     type: String,
     required: true,
   },

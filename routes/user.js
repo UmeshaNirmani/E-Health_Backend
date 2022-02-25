@@ -45,7 +45,7 @@ userRouter.post("/signin", async (req, res) => {
         data: users,
       });
     } else {
-      res.status(401).json({
+      res.status(200).json({
         status: "error",
         message: "Unauthorized User!",
         data: users,

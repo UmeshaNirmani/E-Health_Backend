@@ -11,23 +11,11 @@ foodTableRouter.get("/", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/fetch", async (req, res) => {
-  try {
-    const tableData = await FoodTable.find({});
-    res.status(200).json({
-      status: "success",
-      message: "Found Records",
-      data: tableData,
-    });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
 foodTableRouter.post("/create", async (req, res) => {
   const foodTable = new FoodTable({
     Food: req.body.Food,
     UnitCalorieAmount: req.body.UnitCalorieAmount,
+    Unit: req.body.Unit,
   });
   try {
     const newRecord = await foodTable.save();
@@ -41,7 +29,7 @@ foodTableRouter.post("/create", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/update", async (req, res) => {
+foodTableRouter.post("/fetch", async (req, res) => {
   try {
     const tableData = await FoodTable.find({});
     res.status(200).json({
@@ -54,12 +42,44 @@ foodTableRouter.post("/update", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/deleteById", async (req, res) => {
+foodTableRouter.post("/update", async (req, res) => {
+  console.log("req update: ", req.body);
   try {
-    const tableData = await FoodTable.find({});
+    const updateObject = {
+      Food: req.body.Food,
+      UnitCalorieAmount: req.body.UnitCalorieAmount,
+    };
+    const updateResult = await FoodTable.findByIdAndUpdate(
+      req.body.recordId,
+      updateObject,
+      { new: true }
+    );
+    console.log("updated result: ", updateResult);
+    if (updateResult) {
+      return res.status(200).json({
+        status: "success",
+        message: "Found Records",
+        data: updateResult,
+      });
+    } else {
+      return res.status(200).json({
+        status: "error",
+        message: "Record Not Found.",
+        data: updateResult,
+      });
+    }
+  } catch (error) {
+    console.error("catch error: ", error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
+foodTableRouter.post("/delete", async (req, res) => {
+  try {
+    const tableData = await FoodTable.findByIdAndDelete(req.body.TableDataId);
     res.status(200).json({
       status: "success",
-      message: "Found Records",
+      message: "Record Deleted!",
       data: tableData,
     });
   } catch (error) {

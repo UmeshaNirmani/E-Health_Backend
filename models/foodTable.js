@@ -9,6 +9,10 @@ const foodTableSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  Unit: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("foodTable", foodTableSchema);
