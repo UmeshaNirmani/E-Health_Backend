@@ -21,6 +21,8 @@ userRouter.post("/signup", async (req, res) => {
     Password: req.body.Password,
   });
   try {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(req.body.Password, salt);
     const newUser = await user.save();
     res.status(200).json({
       status: "success",
