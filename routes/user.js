@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = express.Router();
-const User = require("../models/user");
+const userModel = require("../models/user");
+const bcrypt = require("bcrypt");
 
 // test all
 userRouter.get("/", async (req, res) => {
@@ -12,17 +13,16 @@ userRouter.get("/", async (req, res) => {
 });
 
 userRouter.post("/signup", async (req, res) => {
-  const user = new User({
+  const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+  const user = new userModel({
     Title: req.body.Title,
     Role: req.body.Role,
     FirstName: req.body.FirstName,
     LastName: req.body.LastName,
     Email: req.body.Email,
-    Password: req.body.Password,
+    Password: hashedPassword,
   });
   try {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(req.body.Password, salt);
     const newUser = await user.save();
     res.status(200).json({
       status: "success",
@@ -35,22 +35,29 @@ userRouter.post("/signup", async (req, res) => {
 });
 
 userRouter.post("/signin", async (req, res) => {
-  try {
-    let users = await User.find({
-      Email: req.body.Email,
-      Password: req.body.Password,
+  const userAuth = await userModel.find({
+    Email: req.body.Email,
+  });
+  if (userAuth === null) {
+    res.status(400).json({
+      status: "error",
+      message: "User not Found",
+      data: null,
     });
-    if (users.length > 0) {
+  } else {
+  }
+  try {
+    if (bcrypt.compare(req.body.Password, userAuth.Password)) {
       res.status(200).json({
         status: "success",
-        message: "User Found",
-        data: users,
+        message: "User Found!",
+        data: userAuth,
       });
     } else {
       res.status(200).json({
         status: "error",
         message: "Unauthorized User!",
-        data: users,
+        data: null,
       });
     }
   } catch (error) {

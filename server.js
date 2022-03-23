@@ -17,11 +17,13 @@ const cors = require("cors");
 const userRouter = require("./routes/user");
 const foodTableRouter = require("./routes/foodTable");
 const foodDiaryRouter = require("./routes/foodDiary");
+const calorieCalculatorRouter = require("./routes/calorieCalculator");
 
 app.use(cors());
 
-app.use("/users", userRouter);
+app.use("/user", userRouter);
 app.use("/foodtable", foodTableRouter);
 app.use("/fooddiary", foodDiaryRouter);
+app.use("/user", calorieCalculatorRouter);
 
 app.listen(4000, () => console.log("Server Started..."));
