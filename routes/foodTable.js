@@ -1,6 +1,6 @@
 const express = require("express");
 const foodTableRouter = express.Router();
-const FoodTable = require("../models/foodTable");
+const FoodTable = require("../models/foodtable");
 
 // test all
 foodTableRouter.get("/", async (req, res) => {

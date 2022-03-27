@@ -12,24 +12,42 @@ foodDiaryRouter.get("/", async (req, res) => {
 });
 
 foodDiaryRouter.post("/create", async (req, res) => {
+  console.log("req food diary create: ", req.body);
   const foodDiary = new FoodDiary({
     Date: req.body.Date,
     MealType: req.body.MealType,
-    Food: req.body.Food,
-    ServingsAmount: req.body.ServingsAmount,
+    FoodDetails: req.body.FoodDetails,
+    totalMealCalorie: req.body.totalMealCalorie,
   });
-
   try {
-    // const tableData = await FoodDiary.find({
-    //   MealType: req.body.MealType,
-    //   Food: req.body.Food,
-    // });
     const newRecord = await foodDiary.save();
     res.status(200).json({
       status: "success",
       message: "Record Added",
-      data: [],
+      data: newRecord,
     });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+foodDiaryRouter.post("/fetch", async (req, res) => {
+  console.log("req food diary fetch: ", req.body);
+  let selectedDate = req.body.Date;
+  try {
+    let diaryData = await FoodDiary.find({ Date: selectedDate });
+    res.status(200).json({
+      status: "success",
+      message: "Found Records",
+      data: diaryData,
+    });
+    if ((diaryData = null)) {
+      res.status(200).json({
+        status: "success",
+        message: "Records not fount",
+        data: [],
+      });
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

@@ -13,11 +13,15 @@ const foodDiarySchema = new mongoose.Schema({
   },
   FoodDetails: [
     {
+      FoodTableId: {
+        type: String,
+        required: true,
+      },
       Food: {
         type: String,
         required: true,
       },
-      UnitCalorieAmount: {
+      Servings: {
         type: Number,
         required: true,
       },
@@ -25,13 +29,13 @@ const foodDiarySchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      ServingsAmount: {
+      UnitCalorieAmount: {
         type: Number,
         required: true,
       },
     },
   ],
-  MealTotalCalories: { type: Number, defaultValue: 0 },
+  totalMealCalorie: { type: Number, defaultValue: 0 },
 });
 
 module.exports = mongoose.model("fooddiary", foodDiarySchema);

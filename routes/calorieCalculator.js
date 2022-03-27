@@ -1,5 +1,5 @@
 const express = require("express");
-const CalorieCalculator = require("../models/foodTable");
+const CalorieCalculator = require("../models/foodtable");
 const calorieCalculatorRouter = express.Router();
 
 // test all
@@ -13,7 +13,7 @@ calorieCalculatorRouter.get("/", async (req, res) => {
 
 calorieCalculatorRouter.post("/caloriecalculator", async (req, res) => {
   try {
-    const Foods = await CalorieCalculator.find({}).select("Food");
+    const Foods = await CalorieCalculator.find({}).select("-__v");
     res.status(200).json({
       status: "success",
       message: "Found Records",

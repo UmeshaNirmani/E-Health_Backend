@@ -1,4 +1,4 @@
-const foodTableRouter = require("./routes/foodTable");
+const foodTableRouter = require("./routes/foodtable");
 const authUser = require("../auth/basicAuth");
 
 app.use(express.json());
