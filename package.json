@@ -1,7 +1,7 @@
 {
-  "name": "tutorialAPI",
+  "name": "ehealth",
   "version": "1.0.0",
-  "description": "tutorial",
+  "description": "mini project backend",
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js"

@@ -2,6 +2,8 @@ const express = require("express");
 const userRouter = express.Router();
 const userModel = require("../models/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const saltRounds = 10;
 
 // test all
 userRouter.get("/", async (req, res) => {
@@ -13,7 +15,8 @@ userRouter.get("/", async (req, res) => {
 });
 
 userRouter.post("/signup", async (req, res) => {
-  const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+  console.log("inputs", req.body);
+  const hashedPassword = await bcrypt.hash(req.body.Password, saltRounds);
   const user = new userModel({
     Title: req.body.Title,
     Role: req.body.Role,
@@ -35,33 +38,55 @@ userRouter.post("/signup", async (req, res) => {
 });
 
 userRouter.post("/signin", async (req, res) => {
-  const userAuth = await userModel.find({
+  console.log("inputs", req.body);
+  const userAuth = await userModel.findOne({
     Email: req.body.Email,
   });
-  if (userAuth === null) {
-    res.status(400).json({
-      status: "error",
-      message: "User not Found",
-      data: null,
-    });
-  } else {
-  }
+  jwt.sign(
+    { userAuth },
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, token, next) => {
+      next();
+    }
+  );
   try {
-    if (bcrypt.compare(req.body.Password, userAuth.Password)) {
+    if (!userAuth) {
+      return res.status(400).json({
+        status: "error",
+        message: "User not found!",
+        data: null,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(req.body.Password, userAuth.Password);
+    const responseData = {
+      Id: userAuth._id,
+      Title: userAuth.Title,
+      Role: userAuth.Role,
+      FirstName: userAuth.FirstName,
+      LastName: userAuth.LastName,
+      Email: userAuth.Email,
+    };
+
+    if (isMatch) {
       res.status(200).json({
         status: "success",
         message: "User Found!",
-        data: userAuth,
+        data: responseData,
       });
     } else {
-      res.status(200).json({
+      res.status(400).json({
         status: "error",
-        message: "Unauthorized User!",
+        message: "User password not matching",
         data: null,
       });
     }
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({
+      status: "error",
+      message: "Authentication error",
+      data: error.message,
+    });
   }
 });
 

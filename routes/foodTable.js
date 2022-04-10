@@ -1,6 +1,7 @@
 const express = require("express");
 const foodTableRouter = express.Router();
 const FoodTable = require("../models/foodtable");
+const verifyToken = require("../auth/tokenverify");
 
 // test all
 foodTableRouter.get("/", async (req, res) => {
@@ -11,7 +12,7 @@ foodTableRouter.get("/", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/create", async (req, res) => {
+foodTableRouter.post("/create", verifyToken, async (req, res) => {
   const foodTable = new FoodTable({
     Food: req.body.Food,
     UnitCalorieAmount: req.body.UnitCalorieAmount,
@@ -29,7 +30,7 @@ foodTableRouter.post("/create", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/fetch", async (req, res) => {
+foodTableRouter.post("/fetch", verifyToken, async (req, res) => {
   try {
     const tableData = await FoodTable.find({});
     res.status(200).json({
@@ -42,7 +43,7 @@ foodTableRouter.post("/fetch", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/update", async (req, res) => {
+foodTableRouter.post("/update", verifyToken, async (req, res) => {
   console.log("req update: ", req.body);
   try {
     const updateObject = {
@@ -74,7 +75,7 @@ foodTableRouter.post("/update", async (req, res) => {
   }
 });
 
-foodTableRouter.post("/delete", async (req, res) => {
+foodTableRouter.post("/delete", verifyToken, async (req, res) => {
   try {
     const tableData = await FoodTable.findByIdAndDelete(req.body.TableDataId);
     res.status(200).json({

@@ -1,6 +1,7 @@
 const express = require("express");
 const MedicalHistory = require("../models/medicalhistory");
 const medicalHistoryRouter = express.Router();
+const verifyToken = require("../auth/tokenverify");
 
 // test all
 medicalHistoryRouter.get("/", async (req, res) => {
@@ -12,7 +13,7 @@ medicalHistoryRouter.get("/", async (req, res) => {
 });
 
 // create
-medicalHistoryRouter.post("/create", async (req, res) => {
+medicalHistoryRouter.post("/create", verifyToken, async (req, res) => {
   console.log("req create: ", req.body);
   const medicalHistory = new MedicalHistory({
     Disease: req.body.Disease,
@@ -38,7 +39,7 @@ medicalHistoryRouter.post("/create", async (req, res) => {
 });
 
 // fetch all
-medicalHistoryRouter.post("/", async (req, res) => {
+medicalHistoryRouter.post("/", verifyToken, async (req, res) => {
   try {
     let medicalHistory = await MedicalHistory.find({});
     res.status(200).json({

@@ -9,6 +9,7 @@ const MomentRange = require("moment-range");
 const moment =
   MomentRange.extendMoment(Moment); /*add plugin to moment instance*/
 const _ = require("lodash");
+const verifyToken = require("../auth/tokenverify");
 
 //test all
 foodDiaryRouter.get("/", async (req, res) => {
@@ -19,8 +20,8 @@ foodDiaryRouter.get("/", async (req, res) => {
   }
 });
 
-foodDiaryRouter.post("/create", async (req, res) => {
-  console.log("req food diary create: ", req.body);
+foodDiaryRouter.post("/create", verifyToken, async (req, res) => {
+  console.log("req food diary create 2: ", req.body);
   const foodDiary = new FoodDiary({
     Date: req.body.Date,
     MealType: req.body.MealType,
@@ -40,8 +41,8 @@ foodDiaryRouter.post("/create", async (req, res) => {
   }
 });
 
-foodDiaryRouter.post("/fetch", async (req, res) => {
-  console.log("req food diary fetch: ", req.body);
+foodDiaryRouter.post("/fetch", verifyToken, async (req, res) => {
+  console.log("req food diary fetch 3: ", req.body);
   let selectedDate = req.body.Date;
   let diaryData = await FoodDiary.find({ Date: selectedDate });
   console.log("diaryData", diaryData);
@@ -65,7 +66,7 @@ foodDiaryRouter.post("/fetch", async (req, res) => {
 });
 
 // aggregation pipeline
-const graphData = async () => {
+const graphPipeline = async () => {
   const pipeline = [
     {
       $group: {
@@ -87,62 +88,59 @@ const graphData = async () => {
   return resultArray;
 };
 
-foodDiaryRouter.post("/fetchByTimeRange", async (req, res) => {
-  console.log("req food diary fetch: ", req.body);
-
-  // format array created in aggregation pipeline
-  const graphDataArray = await graphData();
-  //console.log("graphDataArray", graphDataArray);
-  let graphDataArrayFormatted = [];
-  for (let i = 0; i < graphDataArray.length; i++) {
-    graphDataArrayFormatted.push({
-      date: moment(graphDataArray[i]._id, "YYYY-MM-DD").format("YYYY-MM-DD"),
-      totCaloriePerDay: graphDataArray[i].totalForDay,
-    });
-  }
-  console.log("graphDataArrayFormatted", graphDataArrayFormatted);
-
-  // creating the array of dates within the given time range
-  let diaryData = await FoodDiary.find({
-    Date: { $gte: req.body.DateStart, $lte: req.body.DateEnd },
-  });
-  const start = moment(req.body.DateStart, "YYYY-MM-DD");
-  const end = moment(req.body.DateEnd, "YYYY-MM-DD");
-  const range = moment.range(start, end);
-  array = Array.from(range.by("days"));
-  let dateRange = [];
-  for (let i = 0; i < array.length; i++) {
-    dateRange.push({
-      date: moment(array[i], "YYYY-MM-DD").format("YYYY-MM-DD"),
-    });
-  }
-  console.log("dateRange", dateRange);
-
-  //match the 2 arrays and create the resulting data set
-  let finalDataSet = [];
-  for (let i = 0; i < dateRange.length; i++) {
-    let result = _.find(graphDataArrayFormatted, { date: dateRange[i].date });
-    if (result === undefined) {
-      finalDataSet.push({ date: dateRange[i].date, totCaloriePerDay: 0 });
-    } else {
-      finalDataSet.push(result);
-    }
-  }
-  console.log("finalDataSet", finalDataSet);
+foodDiaryRouter.post("/fetchByTimeRange", verifyToken, async (req, res) => {
+  console.log("req food diary fetch 1: ", req.body);
 
   try {
+    // format array created in aggregation pipeline
+    const graphDataArray = await graphPipeline();
+    //console.log("graphDataArray", graphDataArray);
+    let graphDataArrayFormatted = [];
+    for (let i = 0; i < graphDataArray.length; i++) {
+      graphDataArrayFormatted.push({
+        date: moment(graphDataArray[i]._id, "YYYY-MM-DD").format("YYYY-MM-DD"),
+        totCaloriePerDay: graphDataArray[i].totalForDay,
+      });
+    }
+    console.log("graphDataArrayFormatted", graphDataArrayFormatted);
+
+    const start = moment(req.body.StartDate, "YYYY-MM-DD");
+    const end = moment(req.body.EndDate, "YYYY-MM-DD");
+    const range = moment.range(start, end);
+    array = Array.from(range.by("days"));
+    let dateRange = [];
+    for (let i = 0; i < array.length; i++) {
+      dateRange.push({
+        date: moment(array[i], "YYYY-MM-DD").format("YYYY-MM-DD"),
+      });
+    }
+    console.log("dateRange", dateRange);
+
+    //match the 2 arrays and create the resulting data set
+    let finalDataSet = [];
+    for (let i = 0; i < dateRange.length; i++) {
+      let result = _.find(graphDataArrayFormatted, { date: dateRange[i].date });
+      if (result === undefined) {
+        finalDataSet.push({ date: dateRange[i].date, totCaloriePerDay: 0 });
+      } else {
+        finalDataSet.push(result);
+      }
+    }
+    console.log("finalDataSet", finalDataSet);
+
+    let graphLabels = [];
+    graphLabels = _.map(finalDataSet, "date");
+    console.log("graphLabels", graphLabels);
+
+    let graphData = [];
+    graphData = _.map(finalDataSet, "totCaloriePerDay");
+    console.log("graphData", graphData);
+
     res.status(200).json({
       status: "success",
       message: "Found Records",
-      data: finalDataSet,
+      data: [graphLabels, graphData],
     });
-    if (diaryData == null) {
-      res.status(200).json({
-        status: "success",
-        message: "Records not fount",
-        data: [],
-      });
-    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
