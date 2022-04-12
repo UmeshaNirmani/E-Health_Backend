@@ -12,21 +12,17 @@ calorieCalculatorRouter.get("/", async (req, res) => {
   }
 });
 
-calorieCalculatorRouter.post(
-  "/caloriecalculator",
-  verifyToken,
-  async (req, res) => {
-    try {
-      const Foods = await CalorieCalculator.find({}).select("-__v");
-      res.status(200).json({
-        status: "success",
-        message: "Found Records",
-        data: Foods,
-      });
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
+calorieCalculatorRouter.post("/caloriecalculator", async (req, res) => {
+  try {
+    const Foods = await CalorieCalculator.find({}).select("-__v");
+    res.status(200).json({
+      status: "success",
+      message: "Found Records",
+      data: Foods,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
-);
+});
 
 module.exports = calorieCalculatorRouter;

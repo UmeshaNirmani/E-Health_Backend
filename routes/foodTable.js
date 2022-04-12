@@ -30,7 +30,7 @@ foodTableRouter.post("/create", verifyToken, async (req, res) => {
   }
 });
 
-foodTableRouter.post("/fetch", verifyToken, async (req, res) => {
+foodTableRouter.post("/fetch", async (req, res) => {
   try {
     const tableData = await FoodTable.find({});
     res.status(200).json({

@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 
 const foodTableSchema = new mongoose.Schema({
+  UserId: {
+    type: String,
+    required: true,
+  },
+  Email: {
+    type: String,
+    required: true,
+  },
   Food: {
     type: String,
     required: true,

@@ -10,6 +10,7 @@ const moment =
   MomentRange.extendMoment(Moment); /*add plugin to moment instance*/
 const _ = require("lodash");
 const verifyToken = require("../auth/tokenverify");
+const jwt = require("jsonwebtoken");
 
 //test all
 foodDiaryRouter.get("/", async (req, res) => {
@@ -20,9 +21,25 @@ foodDiaryRouter.get("/", async (req, res) => {
   }
 });
 
+// create food diary (or save calorie calculator data)
 foodDiaryRouter.post("/create", verifyToken, async (req, res) => {
-  console.log("req food diary create 2: ", req.body);
+  console.log("req food diary create: ", req.body);
+
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        res.sendStatus(403);
+        console.log(err);
+      } else return authData;
+    }
+  );
+  console.log("userData", userData);
+
   const foodDiary = new FoodDiary({
+    UserId: userData.UserId,
+    Email: userData.Email,
     Date: req.body.Date,
     MealType: req.body.MealType,
     FoodDetails: req.body.FoodDetails,
@@ -41,10 +58,26 @@ foodDiaryRouter.post("/create", verifyToken, async (req, res) => {
   }
 });
 
+// fetch all food diary records
 foodDiaryRouter.post("/fetch", verifyToken, async (req, res) => {
-  console.log("req food diary fetch 3: ", req.body);
+  console.log("req food diary fetch all: ", req.body);
+
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        res.sendStatus(403);
+        console.log(err);
+      } else return authData;
+    }
+  );
+
   let selectedDate = req.body.Date;
-  let diaryData = await FoodDiary.find({ Date: selectedDate });
+  let diaryData = await FoodDiary.find({
+    Date: selectedDate,
+    UserId: userData.UserId,
+  });
   console.log("diaryData", diaryData);
   if (diaryData === []) {
     res.status(400).json({
@@ -88,6 +121,7 @@ const graphPipeline = async () => {
   return resultArray;
 };
 
+// fetch calorie consumption data to draw a graph
 foodDiaryRouter.post("/fetchByTimeRange", verifyToken, async (req, res) => {
   console.log("req food diary fetch 1: ", req.body);
 

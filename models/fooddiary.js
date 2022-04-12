@@ -2,6 +2,14 @@ const req = require("express/lib/request");
 const mongoose = require("mongoose");
 
 const foodDiarySchema = new mongoose.Schema({
+  UserId: {
+    type: String,
+    required: true,
+  },
+  Email: {
+    type: String,
+    required: true,
+  },
   Date: {
     type: Date,
     required: true,

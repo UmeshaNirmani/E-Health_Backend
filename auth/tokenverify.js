@@ -1,21 +1,22 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+
 // FORMAT OF TOKEN
 // Authorization: Bearer <access_token>
 
-// Verify Token middleware
 function verifyToken(req, res, next) {
-  // get auth header value
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
+  // Get auth header value
+  const bearerHeader = req.headers["authorization"];
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    console.log(err);
-    if (err) return res.sendStatus(403);
-    req.user = user;
+  if (typeof bearerHeader !== "undefined") {
+    const bearer = bearerHeader.split(" ");
+    const bearerToken = bearer[1];
+    // Set the token
+    req.token = bearerToken;
     next();
-  });
+  } else {
+    res.sendStatus(403);
+  }
 }
 
 module.exports = verifyToken;

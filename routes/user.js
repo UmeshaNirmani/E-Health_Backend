@@ -3,6 +3,7 @@ const userRouter = express.Router();
 const userModel = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { json } = require("express");
 const saltRounds = 10;
 
 // test all
@@ -20,8 +21,6 @@ userRouter.post("/signup", async (req, res) => {
   const user = new userModel({
     Title: req.body.Title,
     Role: req.body.Role,
-    FirstName: req.body.FirstName,
-    LastName: req.body.LastName,
     Email: req.body.Email,
     Password: hashedPassword,
   });
@@ -39,17 +38,11 @@ userRouter.post("/signup", async (req, res) => {
 
 userRouter.post("/signin", async (req, res) => {
   console.log("inputs", req.body);
-  const userAuth = await userModel.findOne({
-    Email: req.body.Email,
-  });
-  jwt.sign(
-    { userAuth },
-    process.env.ACCESS_TOKEN_SECRET,
-    (err, token, next) => {
-      next();
-    }
-  );
+
   try {
+    const userAuth = await userModel.findOne({
+      Email: req.body.Email,
+    });
     if (!userAuth) {
       return res.status(400).json({
         status: "error",
@@ -59,13 +52,20 @@ userRouter.post("/signin", async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(req.body.Password, userAuth.Password);
+    const accessToken = jwt.sign(
+      {
+        UserId: userAuth._id,
+        Email: userAuth.Email,
+        Role: userAuth.Role,
+      },
+      process.env.ACCESS_TOKEN_SECRET
+    );
     const responseData = {
       Id: userAuth._id,
       Title: userAuth.Title,
       Role: userAuth.Role,
-      FirstName: userAuth.FirstName,
-      LastName: userAuth.LastName,
       Email: userAuth.Email,
+      accessToken: accessToken,
     };
 
     if (isMatch) {
@@ -77,7 +77,7 @@ userRouter.post("/signin", async (req, res) => {
     } else {
       res.status(400).json({
         status: "error",
-        message: "User password not matching",
+        message: "Incorrect password!",
         data: null,
       });
     }
