@@ -30,8 +30,8 @@ foodDiaryRouter.post("/create", verifyToken, async (req, res) => {
     process.env.ACCESS_TOKEN_SECRET,
     (err, authData) => {
       if (err) {
-        res.sendStatus(403);
         console.log(err);
+        return err;
       } else return authData;
     }
   );
@@ -67,8 +67,8 @@ foodDiaryRouter.post("/fetch", verifyToken, async (req, res) => {
     process.env.ACCESS_TOKEN_SECRET,
     (err, authData) => {
       if (err) {
-        res.sendStatus(403);
         console.log(err);
+        return err;
       } else return authData;
     }
   );
@@ -103,15 +103,13 @@ const graphPipeline = async () => {
   const pipeline = [
     {
       $group: {
-        _id: "$Date",
+        _id: {
+          Email: "$Email",
+          Date: "$Date",
+        },
         totalForDay: {
           $sum: "$totalMealCalorie",
         },
-      },
-    },
-    {
-      $sort: {
-        _id: 1,
       },
     },
   ];
@@ -123,23 +121,43 @@ const graphPipeline = async () => {
 
 // fetch calorie consumption data to draw a graph
 foodDiaryRouter.post("/fetchByTimeRange", verifyToken, async (req, res) => {
-  console.log("req food diary fetch 1: ", req.body);
+  console.log("req food diary fetch time range: ", req.body);
+
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
 
   try {
     // format array created in aggregation pipeline
-    const graphDataArray = await graphPipeline();
+    const pipelineData = await graphPipeline();
+
+    const graphDataArray = _.filter(pipelineData, {
+      _id: { Email: userData.Email },
+    });
     //console.log("graphDataArray", graphDataArray);
+
     let graphDataArrayFormatted = [];
     for (let i = 0; i < graphDataArray.length; i++) {
       graphDataArrayFormatted.push({
-        date: moment(graphDataArray[i]._id, "YYYY-MM-DD").format("YYYY-MM-DD"),
+        date: moment(graphDataArray[i]._id.Date, "YYYY-MM-DD").format(
+          "YYYY-MM-DD"
+        ),
         totCaloriePerDay: graphDataArray[i].totalForDay,
       });
     }
-    console.log("graphDataArrayFormatted", graphDataArrayFormatted);
+    // console.log("graphDataArrayFormatted", graphDataArrayFormatted);
 
-    const start = moment(req.body.StartDate, "YYYY-MM-DD");
-    const end = moment(req.body.EndDate, "YYYY-MM-DD");
+    const start = moment(req.body.StartDate).format("YYYY-MM-DD");
+    //console.log("StartDate", start);
+    const end = moment(req.body.EndDate).format("YYYY-MM-DD");
+    //console.log("endDate", end);
     const range = moment.range(start, end);
     array = Array.from(range.by("days"));
     let dateRange = [];
@@ -148,7 +166,7 @@ foodDiaryRouter.post("/fetchByTimeRange", verifyToken, async (req, res) => {
         date: moment(array[i], "YYYY-MM-DD").format("YYYY-MM-DD"),
       });
     }
-    console.log("dateRange", dateRange);
+    //console.log("dateRange", dateRange);
 
     //match the 2 arrays and create the resulting data set
     let finalDataSet = [];
@@ -160,7 +178,7 @@ foodDiaryRouter.post("/fetchByTimeRange", verifyToken, async (req, res) => {
         finalDataSet.push(result);
       }
     }
-    console.log("finalDataSet", finalDataSet);
+    //console.log("finalDataSet", finalDataSet);
 
     let graphLabels = [];
     graphLabels = _.map(finalDataSet, "date");

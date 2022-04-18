@@ -15,7 +15,19 @@ medicalHistoryRouter.get("/", async (req, res) => {
 // create
 medicalHistoryRouter.post("/create", verifyToken, async (req, res) => {
   console.log("req create: ", req.body);
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
   const medicalHistory = new MedicalHistory({
+    UserId: userData.UserId,
+    Email: userData.Email,
     Disease: req.body.Disease,
     DrugHistory: req.body.DrugHistory,
     Investigations: req.body.Investigations,
@@ -40,8 +52,18 @@ medicalHistoryRouter.post("/create", verifyToken, async (req, res) => {
 
 // fetch all
 medicalHistoryRouter.post("/", verifyToken, async (req, res) => {
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
   try {
-    let medicalHistory = await MedicalHistory.find({});
+    let medicalHistory = await MedicalHistory.find({ UserId: userData.UserId });
     res.status(200).json({
       status: "success",
       message: "Record found",

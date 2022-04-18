@@ -2,6 +2,7 @@ const express = require("express");
 const foodTableRouter = express.Router();
 const FoodTable = require("../models/foodtable");
 const verifyToken = require("../auth/tokenverify");
+const jwt = require("jsonwebtoken");
 
 // test all
 foodTableRouter.get("/", async (req, res) => {
@@ -13,7 +14,19 @@ foodTableRouter.get("/", async (req, res) => {
 });
 
 foodTableRouter.post("/create", verifyToken, async (req, res) => {
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
   const foodTable = new FoodTable({
+    UserId: userData.UserId,
+    Email: userData.Email,
     Food: req.body.Food,
     UnitCalorieAmount: req.body.UnitCalorieAmount,
     Unit: req.body.Unit,
@@ -45,10 +58,23 @@ foodTableRouter.post("/fetch", async (req, res) => {
 
 foodTableRouter.post("/update", verifyToken, async (req, res) => {
   console.log("req update: ", req.body);
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
   try {
     const updateObject = {
+      UserId: userData.UserId,
+      Email: userData.Email,
       Food: req.body.Food,
       UnitCalorieAmount: req.body.UnitCalorieAmount,
+      Unit: req.body.Unit,
     };
     const updateResult = await FoodTable.findByIdAndUpdate(
       req.body.recordId,
@@ -76,6 +102,17 @@ foodTableRouter.post("/update", verifyToken, async (req, res) => {
 });
 
 foodTableRouter.post("/delete", verifyToken, async (req, res) => {
+  console.log("req delete: ", req.body);
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
   try {
     const tableData = await FoodTable.findByIdAndDelete(req.body.TableDataId);
     res.status(200).json({
