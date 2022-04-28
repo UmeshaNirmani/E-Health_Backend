@@ -16,7 +16,7 @@ userRouter.get("/", async (req, res) => {
 });
 
 userRouter.post("/signup", async (req, res) => {
-  console.log("inputs", req.body);
+  console.log("inputs signup", req.body);
   const hashedPassword = await bcrypt.hash(req.body.Password, saltRounds);
   const user = new userModel({
     Title: req.body.Title,
@@ -37,7 +37,7 @@ userRouter.post("/signup", async (req, res) => {
 });
 
 userRouter.post("/signin", async (req, res) => {
-  console.log("inputs", req.body);
+  console.log("inputs login", req.body);
 
   try {
     const userAuth = await userModel.findOne({
@@ -56,6 +56,7 @@ userRouter.post("/signin", async (req, res) => {
       {
         UserId: userAuth._id,
         Email: userAuth.Email,
+        FirstName: userAuth.FirstName,
         Role: userAuth.Role,
       },
       process.env.ACCESS_TOKEN_SECRET

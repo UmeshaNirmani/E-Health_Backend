@@ -1,7 +1,6 @@
 const express = require("express");
 const CalorieCalculator = require("../models/foodtable");
 const calorieCalculatorRouter = express.Router();
-const verifyToken = require("../auth/tokenverify");
 
 // test all
 calorieCalculatorRouter.get("/", async (req, res) => {

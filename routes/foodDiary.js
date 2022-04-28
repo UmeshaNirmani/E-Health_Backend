@@ -62,37 +62,35 @@ foodDiaryRouter.post("/create", verifyToken, async (req, res) => {
 foodDiaryRouter.post("/fetch", verifyToken, async (req, res) => {
   console.log("req food diary fetch all: ", req.body);
 
-  const userData = jwt.verify(
-    req.token,
-    process.env.ACCESS_TOKEN_SECRET,
-    (err, authData) => {
-      if (err) {
-        console.log(err);
-        return err;
-      } else return authData;
-    }
-  );
-
-  let selectedDate = req.body.Date;
-  let diaryData = await FoodDiary.find({
-    Date: selectedDate,
-    UserId: userData.UserId,
-  });
-  console.log("diaryData", diaryData);
-  if (diaryData === []) {
-    res.status(400).json({
-      status: "success",
-      message: "Records not found",
-      data: null,
-    });
-  }
-
   try {
-    res.status(200).json({
-      status: "success",
-      message: "Found Records",
-      data: diaryData,
+    const userData = jwt.verify(
+      req.token,
+      process.env.ACCESS_TOKEN_SECRET,
+      (err, authData) => {
+        if (err) {
+          console.log(err);
+        } else return authData;
+      }
+    );
+
+    let diaryData = await FoodDiary.find({
+      Date: req.body.Date,
+      Email: userData.Email,
     });
+    console.log("diaryData", diaryData);
+    if (diaryData === []) {
+      res.status(400).json({
+        status: "success",
+        message: "Records not found",
+        data: null,
+      });
+    } else {
+      res.status(200).json({
+        status: "success",
+        message: "Found Records",
+        data: diaryData,
+      });
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

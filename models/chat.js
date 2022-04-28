@@ -2,19 +2,23 @@ const req = require("express/lib/request");
 const mongoose = require("mongoose");
 
 const chatSchema = new mongoose.Schema({
-  UserId: {
-    type: String,
-    required: true,
-  },
   Email: {
     type: String,
     required: true,
   },
-  Date: {
+  FirstName: {
+    type: String,
+    required: true,
+  },
+  Role: {
+    type: String,
+    required: true,
+  },
+  TimeStamp: {
     type: Date,
     required: true,
   },
-  message: {
+  Message: {
     type: String,
     required: true,
   },

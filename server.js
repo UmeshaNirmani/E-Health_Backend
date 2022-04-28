@@ -19,6 +19,7 @@ const foodTableRouter = require("./routes/foodTable");
 const foodDiaryRouter = require("./routes/foodDiary");
 const calorieCalculatorRouter = require("./routes/calorieCalculator");
 const medicalHistoryRouter = require("./routes/medicalHistory");
+const chatRouter = require("./routes/chat");
 
 app.use(cors());
 
@@ -27,5 +28,6 @@ app.use("/foodtable", foodTableRouter);
 app.use("/fooddiary", foodDiaryRouter);
 app.use("/user", calorieCalculatorRouter);
 app.use("/medicalhistory", medicalHistoryRouter);
+app.use("/chat", chatRouter);
 
 app.listen(4000, () => console.log("Server Started..."));
