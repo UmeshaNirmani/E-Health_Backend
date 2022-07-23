@@ -46,6 +46,7 @@ foodTableRouter.post("/create", verifyToken, async (req, res) => {
 foodTableRouter.post("/fetch", async (req, res) => {
   try {
     const tableData = await FoodTable.find({});
+    console.log("tableData", tableData);
     res.status(200).json({
       status: "success",
       message: "Found Records",

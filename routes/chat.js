@@ -1,10 +1,11 @@
 const express = require("express");
 const Chat = require("../models/chat");
 const chatRouter = express.Router();
+const Moment = require("moment");
 const verifyToken = require("../auth/tokenverify");
 const jwt = require("jsonwebtoken");
 
-chatRouter.post("/chat", verifyToken, async (req, res) => {
+chatRouter.post("/create", verifyToken, async (req, res) => {
   const userData = jwt.verify(
     req.token,
     process.env.ACCESS_TOKEN_SECRET,
@@ -16,11 +17,12 @@ chatRouter.post("/chat", verifyToken, async (req, res) => {
     }
   );
 
+  const currentTime = moment().format();
   const chat = new Chat({
     Email: userData.Email,
     FirstName: userData.FirstName,
     Role: userData.Role,
-    TimeStamp: req.body.TimeStamp,
+    TimeStamp: currentTime,
     Message: req.body.Message,
   });
 
@@ -33,6 +35,34 @@ chatRouter.post("/chat", verifyToken, async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// fetch all for patient-doctor chats
+chatRouter.post("/", verifyToken, async (req, res) => {
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
+  try {
+    let chatHistory = await Chat.find({ UserId: userData.UserId });
+    res.status(200).json({
+      status: "success",
+      message: "Record found",
+      data: chatHistory,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Error finding",
+      data: [],
+    });
   }
 });
 

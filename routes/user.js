@@ -4,6 +4,7 @@ const userModel = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { json } = require("express");
+const verifyToken = require("../auth/tokenverify");
 const saltRounds = 10;
 
 // test all
@@ -32,6 +33,82 @@ userRouter.post("/signup", async (req, res) => {
       data: newUser,
     });
   } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+userRouter.post("/fetch", async (req, res) => {
+  try {
+    const tableData = await userModel.find({});
+    console.log("tableData", tableData);
+    res.status(200).json({
+      status: "success",
+      message: "Found Records",
+      data: tableData,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+userRouter.post("/update", verifyToken, async (req, res) => {
+  console.log("req user update: ", req.body);
+  const hashedPassword = await bcrypt.hash(req.body.Password, saltRounds);
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log(err);
+        return err;
+      } else return authData;
+    }
+  );
+  try {
+    const updateObject = {
+      Title: req.body.Title,
+      Role: req.body.Role,
+      FirstName: req.body.FirstName,
+      LastName: req.body.LastName,
+      Email: req.body.Email,
+      Password: hashedPassword,
+      Gender: req.body.Gender,
+      Phone: req.body.Phone,
+      DOB: req.body.DOB,
+      CurrentLiving: req.body.CurrentLiving,
+      NIC: req.body.NIC,
+      Address: req.body.Address,
+      Job: req.body.Job,
+      Education: req.body.Education,
+      FoodPreference: req.body.FoodPreference,
+      District: req.body.District,
+      Height: req.body.Height,
+      Weight: req.body.Weight,
+      SLMC: req.body.SLMC,
+      Hospital: req.body.Hospital,
+    };
+    const updateResult = await userModel.findByIdAndUpdate(
+      req.body.userId,
+      updateObject,
+      { new: true }
+    );
+
+    console.log("updated result: ", updateResult);
+    if (updateResult) {
+      return res.status(200).json({
+        status: "success",
+        message: "Found Records",
+        data: updateResult,
+      });
+    } else {
+      return res.status(200).json({
+        status: "error",
+        message: "Record Not Found.",
+        data: updateResult,
+      });
+    }
+  } catch (error) {
+    console.error("catch error: ", error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -65,6 +142,7 @@ userRouter.post("/signin", async (req, res) => {
       Id: userAuth._id,
       Title: userAuth.Title,
       Role: userAuth.Role,
+      FirstName: userAuth.FirstName,
       Email: userAuth.Email,
       accessToken: accessToken,
     };
