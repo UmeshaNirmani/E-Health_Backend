@@ -2,6 +2,7 @@ const express = require("express");
 const MedicalHistory = require("../models/medicalhistory");
 const medicalHistoryRouter = express.Router();
 const verifyToken = require("../auth/tokenverify");
+const jwt = require("jsonwebtoken");
 
 // test all
 medicalHistoryRouter.get("/", async (req, res) => {
@@ -52,6 +53,7 @@ medicalHistoryRouter.post("/create", verifyToken, async (req, res) => {
 
 // fetch all
 medicalHistoryRouter.post("/", verifyToken, async (req, res) => {
+  console.log("req id", req.UserId);
   const userData = jwt.verify(
     req.token,
     process.env.ACCESS_TOKEN_SECRET,
@@ -59,8 +61,9 @@ medicalHistoryRouter.post("/", verifyToken, async (req, res) => {
       if (err) {
         console.log(err);
         return err;
-      } else return authData;
+      } else  console.log("authData", authData); return authData;
     }
+   
   );
   try {
     let medicalHistory = await MedicalHistory.find({ UserId: userData.UserId });

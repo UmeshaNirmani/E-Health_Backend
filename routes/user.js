@@ -3,16 +3,44 @@ const userRouter = express.Router();
 const userModel = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { json } = require("express");
 const verifyToken = require("../auth/tokenverify");
 const saltRounds = 10;
 
 // test all
-userRouter.get("/", async (req, res) => {
+// userRouter.get("/", async (req, res) => {
+//   try {
+//     res.json({ message: "hello users!", data: "hello users!" });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+
+userRouter.post("/profile", verifyToken, async (req, res) => {
+  //console.log("token", req.token);
+  const userData = jwt.verify(
+    req.token,
+    process.env.ACCESS_TOKEN_SECRET,
+    (err, authData) => {
+      if (err) {
+        console.log("err",err);
+        return err;
+      } else  return authData; //console.log("authData", authData);
+    }
+  );
+
   try {
-    res.json({ message: "hello users!" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    let userProfile = await userModel.findById(userData.UserId);   
+    res.status(200).json({
+      status: "success",
+      message: "Records found",
+      data: userProfile,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Error finding",
+      data: [],
+    });
   }
 });
 
